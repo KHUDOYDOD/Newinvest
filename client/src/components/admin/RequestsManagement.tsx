@@ -195,7 +195,9 @@ export default function RequestsManagement() {
     queryKey: ["/api/admin/deposit-requests"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/admin/deposit-requests");
-      return await res.json();
+      const data = await res.json();
+      console.log("Deposit requests data:", data);
+      return data;
     },
   });
   
@@ -204,7 +206,9 @@ export default function RequestsManagement() {
     queryKey: ["/api/admin/withdraw-requests"],
     queryFn: async () => {
       const res = await apiRequest("GET", "/api/admin/withdraw-requests");
-      return await res.json();
+      const data = await res.json();
+      console.log("Withdraw requests data:", data);
+      return data;
     },
   });
   
