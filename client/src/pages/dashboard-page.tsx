@@ -40,6 +40,9 @@ import FinancialPlanning from "@/components/dashboard/FinancialPlanning";
 import RiskAssessment from "@/components/dashboard/RiskAssessment";
 import PeerComparison from "@/components/dashboard/PeerComparison";
 import EarningsReport from "@/components/dashboard/EarningsReport";
+import CryptoWallet from "@/components/dashboard/CryptoWallet";
+import LiveChat from "@/components/dashboard/LiveChat";
+import TradingSignals from "@/components/dashboard/TradingSignals";
 
 export default function DashboardPage() {
   const { user, logoutMutation } = useAuth();
@@ -250,6 +253,18 @@ export default function DashboardPage() {
                 </li>
               </ul>
               <Button className="gradient-bg text-white">Открыть чат с поддержкой</Button>
+            </TabsContent>
+            
+            <TabsContent value="crypto" className="h-full p-6">
+              <CryptoWallet />
+            </TabsContent>
+            
+            <TabsContent value="signals" className="h-full p-6">
+              <TradingSignals />
+            </TabsContent>
+            
+            <TabsContent value="chat" className="h-full p-6">
+              <LiveChat />
             </TabsContent>
           </Tabs>
         </div>

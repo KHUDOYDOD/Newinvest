@@ -122,7 +122,7 @@ export function Dashboard() {
   const totalPendingRequests = allPendingDeposits.length + allPendingWithdraws.length;
   
   // Check if user is admin
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user && (user as any).role === 'admin';
 
   if (showAdminPanel && isAdmin) {
     return (
