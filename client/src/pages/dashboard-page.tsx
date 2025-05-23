@@ -5,8 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { Referrals } from "@/components/dashboard/Referrals";
-import DepositForm from "@/components/dashboard/DepositForm";
-import WithdrawForm from "@/components/dashboard/WithdrawForm";
+import DepositRequestForm from "@/components/dashboard/DepositRequestForm";
+import WithdrawRequestForm from "@/components/dashboard/WithdrawRequestForm";
 import {
   LayoutDashboard,
   Wallet,
@@ -144,12 +144,12 @@ export default function DashboardPage() {
             
             <TabsContent value="deposit" className="h-full p-6">
               <h2 className="font-heading font-bold text-2xl mb-6">Пополнение счета</h2>
-              <DepositForm />
+              <DepositRequestForm />
             </TabsContent>
             
             <TabsContent value="withdraw" className="h-full p-6">
               <h2 className="font-heading font-bold text-2xl mb-6">Вывод средств</h2>
-              <WithdrawForm />
+              <WithdrawRequestForm />
             </TabsContent>
             
             <TabsContent value="referrals" className="h-full p-6">
