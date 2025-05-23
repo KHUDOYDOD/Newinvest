@@ -191,24 +191,48 @@ export default function RequestsManagement() {
   const { toast } = useToast();
   
   // Fetch deposit requests
-  const { data: depositRequests, isLoading: depositLoading } = useQuery({
+  const { data: depositRequests = [], isLoading: depositLoading, error: depositError } = useQuery({
     queryKey: ["/api/admin/deposit-requests"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/admin/deposit-requests");
-      const data = await res.json();
-      console.log("Deposit requests data:", data);
-      return data;
+      try {
+        const res = await apiRequest("GET", "/api/admin/deposit-requests");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Response is not JSON");
+        }
+        const data = await res.json();
+        console.log("Deposit requests data:", data);
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Error fetching deposit requests:", error);
+        return [];
+      }
     },
   });
   
   // Fetch withdraw requests
-  const { data: withdrawRequests, isLoading: withdrawLoading } = useQuery({
+  const { data: withdrawRequests = [], isLoading: withdrawLoading, error: withdrawError } = useQuery({
     queryKey: ["/api/admin/withdraw-requests"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/admin/withdraw-requests");
-      const data = await res.json();
-      console.log("Withdraw requests data:", data);
-      return data;
+      try {
+        const res = await apiRequest("GET", "/api/admin/withdraw-requests");
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new Error("Response is not JSON");
+        }
+        const data = await res.json();
+        console.log("Withdraw requests data:", data);
+        return Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Error fetching withdraw requests:", error);
+        return [];
+      }
     },
   });
   
@@ -262,67 +286,86 @@ export default function RequestsManagement() {
     }
   });
 
-  const pendingDeposits = depositRequests?.filter((req: any) => req.status === 'pending') || [];
-  const pendingWithdraws = withdrawRequests?.filter((req: any) => req.status === 'pending') || [];
+  const pendingDeposits = depositRequests.filter((req: any) => req.status === 'pending');
+  const pendingWithdraws = withdrawRequests.filter((req: any) => req.status === 'pending');
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500 rounded-lg">
-                <DollarSign className="h-5 w-5 text-white" />
-              </div>
+    <div className="space-y-8">
+      {/* Beautiful Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+          Управление заявками
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          Обрабатывайте заявки пользователей на пополнение и вывод средств
+        </p>
+      </div>
+
+      {/* Enhanced Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 border-0 shadow-xl">
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+          <CardContent className="relative p-6 text-white">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-700 dark:text-blue-300">Заявки на пополнение</p>
-                <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">{pendingDeposits.length}</p>
+                <p className="text-blue-100 font-medium">Заявки на пополнение</p>
+                <p className="text-3xl font-bold mt-2">{depositRequests.length}</p>
+                <p className="text-sm text-blue-200 mt-1">{pendingDeposits.length} ожидает</p>
+              </div>
+              <div className="p-3 bg-white/20 rounded-xl">
+                <DollarSign className="h-8 w-8" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/20 dark:to-purple-900/20 border-purple-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500 rounded-lg">
-                <ArrowUpRight className="h-5 w-5 text-white" />
-              </div>
+        <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 via-purple-600 to-pink-700 border-0 shadow-xl">
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+          <CardContent className="relative p-6 text-white">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-purple-700 dark:text-purple-300">Заявки на вывод</p>
-                <p className="text-2xl font-bold text-purple-800 dark:text-purple-200">{pendingWithdraws.length}</p>
+                <p className="text-purple-100 font-medium">Заявки на вывод</p>
+                <p className="text-3xl font-bold mt-2">{withdrawRequests.length}</p>
+                <p className="text-sm text-purple-200 mt-1">{pendingWithdraws.length} ожидает</p>
+              </div>
+              <div className="p-3 bg-white/20 rounded-xl">
+                <ArrowUpRight className="h-8 w-8" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-white" />
-              </div>
+        <Card className="relative overflow-hidden bg-gradient-to-br from-green-500 via-emerald-600 to-teal-700 border-0 shadow-xl">
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+          <CardContent className="relative p-6 text-white">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-700 dark:text-green-300">Всего одобрено</p>
-                <p className="text-2xl font-bold text-green-800 dark:text-green-200">
-                  {[...(depositRequests || []), ...(withdrawRequests || [])].filter((req: any) => req.status === 'approved').length}
+                <p className="text-green-100 font-medium">Всего одобрено</p>
+                <p className="text-3xl font-bold mt-2">
+                  {[...depositRequests, ...withdrawRequests].filter((req: any) => req.status === 'approved').length}
                 </p>
+                <p className="text-sm text-green-200 mt-1">заявок обработано</p>
+              </div>
+              <div className="p-3 bg-white/20 rounded-xl">
+                <CheckCircle className="h-8 w-8" />
               </div>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 border-red-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-500 rounded-lg">
-                <XCircle className="h-5 w-5 text-white" />
-              </div>
+        <Card className="relative overflow-hidden bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 border-0 shadow-xl">
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+          <CardContent className="relative p-6 text-white">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-700 dark:text-red-300">Всего отклонено</p>
-                <p className="text-2xl font-bold text-red-800 dark:text-red-200">
-                  {[...(depositRequests || []), ...(withdrawRequests || [])].filter((req: any) => req.status === 'rejected').length}
+                <p className="text-orange-100 font-medium">Всего отклонено</p>
+                <p className="text-3xl font-bold mt-2">
+                  {[...depositRequests, ...withdrawRequests].filter((req: any) => req.status === 'rejected').length}
                 </p>
+                <p className="text-sm text-orange-200 mt-1">заявок отклонено</p>
+              </div>
+              <div className="p-3 bg-white/20 rounded-xl">
+                <XCircle className="h-8 w-8" />
               </div>
             </div>
           </CardContent>
