@@ -46,7 +46,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd Invest && npm run dev"
+args = "npm run dev"
 waitForPort = 5000
 
 [deployment]

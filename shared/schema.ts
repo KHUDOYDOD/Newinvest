@@ -41,6 +41,31 @@ export const transactions = pgTable("transactions", {
   description: text("description"),
 });
 
+export const depositRequests = pgTable("deposit_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method").notNull(),
+  status: text("status").default("pending").notNull(), // pending, approved, rejected
+  adminComment: text("admin_comment"),
+  approvedBy: integer("approved_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  processedAt: timestamp("processed_at"),
+});
+
+export const withdrawRequests = pgTable("withdraw_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+  walletAddress: text("wallet_address").notNull(),
+  paymentMethod: text("payment_method").notNull(),
+  status: text("status").default("pending").notNull(), // pending, approved, rejected
+  adminComment: text("admin_comment"),
+  approvedBy: integer("approved_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  processedAt: timestamp("processed_at"),
+});
+
 // Schemas for validation
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -92,6 +117,23 @@ export const withdrawSchema = z.object({
   wallet: z.string().min(10, "Введите корректный адрес кошелька"),
 });
 
+export const depositRequestSchema = z.object({
+  amount: z.number().min(10, "Минимальная сумма пополнения $10"),
+  paymentMethod: z.string().min(1, "Выберите способ оплаты"),
+});
+
+export const withdrawRequestSchema = z.object({
+  amount: z.number().min(10, "Минимальная сумма вывода $10"),
+  walletAddress: z.string().min(10, "Введите корректный адрес кошелька"),
+  paymentMethod: z.string().min(1, "Выберите способ вывода"),
+});
+
+export const adminActionSchema = z.object({
+  requestId: z.number(),
+  action: z.enum(["approve", "reject"]),
+  comment: z.string().optional(),
+});
+
 // Type Exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -99,7 +141,12 @@ export type Deposit = typeof deposits.$inferSelect;
 export type InsertDeposit = z.infer<typeof insertDepositSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type DepositRequest = typeof depositRequests.$inferSelect;
+export type WithdrawRequest = typeof withdrawRequests.$inferSelect;
 export type LoginData = z.infer<typeof loginSchema>;
 export type RegisterData = z.infer<typeof registerSchema>;
 export type DepositData = z.infer<typeof depositSchema>;
 export type WithdrawData = z.infer<typeof withdrawSchema>;
+export type DepositRequestData = z.infer<typeof depositRequestSchema>;
+export type WithdrawRequestData = z.infer<typeof withdrawRequestSchema>;
+export type AdminActionData = z.infer<typeof adminActionSchema>;
