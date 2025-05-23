@@ -1,58 +1,61 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, CreditCard, Wallet, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { depositSchema } from "@shared/schema";
+import { depositRequestSchema } from "@shared/schema";
 
-type FormValues = z.infer<typeof depositSchema>;
+const formSchema = z.object({
+  amount: z.number().min(10, "Минимальная сумма пополнения $10"),
+  paymentMethod: z.string().min(1, "Выберите способ оплаты"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function DepositForm() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [step, setStep] = useState<'form' | 'payment' | 'success'>('form');
-  const [paymentDetails, setPaymentDetails] = useState({
-    plan: '',
-    amount: 0
-  });
   
   const form = useForm<FormValues>({
-    resolver: zodResolver(depositSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: 500,
-      plan: "10",
+      amount: 100,
+      paymentMethod: "card",
     },
   });
   
-  const depositMutation = useMutation({
-    mutationFn: async (data: FormValues) => {
-      const res = await apiRequest("POST", "/api/deposits", data);
+  // Fetch user's deposit requests
+  const { data: depositRequests } = useQuery({
+    queryKey: ["/api/deposit-requests"],
+    queryFn: async () => {
+      const res = await apiRequest("GET", "/api/deposit-requests");
       return await res.json();
     },
-    onSuccess: (data) => {
-      setPaymentDetails({
-        plan: form.getValues("plan"),
-        amount: form.getValues("amount")
-      });
-      setStep('payment');
-      
-      // Invalidate related queries to update the UI
-      queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
+  });
+  
+  const depositRequestMutation = useMutation({
+    mutationFn: async (data: FormValues) => {
+      const res = await apiRequest("POST", "/api/deposit-request", data);
+      return await res.json();
+    },
+    onSuccess: () => {
+      form.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/deposit-requests"] });
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       
       toast({
-        title: "Депозит в обработке",
-        description: "Пожалуйста, выполните оплату для активации депозита.",
+        title: "Заявка отправлена",
+        description: "Ваша заявка на пополнение отправлена администратору на рассмотрение.",
       });
     },
     onError: (error: Error) => {
