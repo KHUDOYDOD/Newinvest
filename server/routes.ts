@@ -255,14 +255,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Withdraw funds
-  app.post("/api/withdraw", isAuthenticated, async (req, res) => {
+  // Create deposit request
+  app.post("/api/deposit-request", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user!.id;
-      const validatedData = withdrawSchema.parse(req.body);
+      const validatedData = depositRequestSchema.parse(req.body);
       
-      const amount = parseFloat(validatedData.amount.toString());
-      const wallet = validatedData.wallet;
+      const depositRequest = await storage.createDepositRequest({
+        userId,
+        amount: validatedData.amount.toString(),
+        paymentMethod: validatedData.paymentMethod,
+        status: "pending",
+      });
+      
+      res.status(201).json(depositRequest);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      res.status(500).json({ message: "Произошла ошибка при создании заявки на пополнение" });
+    }
+  });
+
+  // Create withdraw request
+  app.post("/api/withdraw-request", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const validatedData = withdrawRequestSchema.parse(req.body);
       
       const user = await storage.getUser(userId);
       if (!user) {
@@ -271,29 +291,165 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const currentBalance = parseFloat(user.balance.toString());
       
-      if (amount > currentBalance) {
+      if (validatedData.amount > currentBalance) {
         return res.status(400).json({ message: "Недостаточно средств на балансе" });
       }
       
-      // Create withdrawal transaction
-      const transaction = await storage.createTransaction({
+      const withdrawRequest = await storage.createWithdrawRequest({
         userId,
-        type: "withdraw",
-        amount: (-amount).toString(),
-        status: "completed",
-        description: `Вывод средств на кошелек ${wallet}`,
+        amount: validatedData.amount.toString(),
+        walletAddress: validatedData.walletAddress,
+        paymentMethod: validatedData.paymentMethod,
+        status: "pending",
       });
       
-      // Update user balance
-      await storage.updateUserBalance(userId, -amount);
-      
-      res.status(201).json(transaction);
+      res.status(201).json(withdrawRequest);
     } catch (error) {
       if (error instanceof ZodError) {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
-      res.status(500).json({ message: "Произошла ошибка при выводе средств" });
+      res.status(500).json({ message: "Произошла ошибка при создании заявки на вывод" });
+    }
+  });
+
+  // Get user's deposit requests
+  app.get("/api/deposit-requests", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const requests = await storage.getDepositRequestsByUserId(userId);
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Произошла ошибка при получении заявок на пополнение" });
+    }
+  });
+
+  // Get user's withdraw requests
+  app.get("/api/withdraw-requests", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const requests = await storage.getWithdrawRequestsByUserId(userId);
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Произошла ошибка при получении заявок на вывод" });
+    }
+  });
+
+  // Admin routes for managing requests
+  
+  // Get all deposit requests
+  app.get("/api/admin/deposit-requests", isAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getAllDepositRequests();
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Ошибка при получении заявок на пополнение" });
+    }
+  });
+
+  // Get all withdraw requests
+  app.get("/api/admin/withdraw-requests", isAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getAllWithdrawRequests();
+      res.json(requests);
+    } catch (error) {
+      res.status(500).json({ message: "Ошибка при получении заявок на вывод" });
+    }
+  });
+
+  // Process deposit request
+  app.post("/api/admin/deposit-requests/:id/process", isAdmin, async (req, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+      const validatedData = adminActionSchema.parse(req.body);
+      const adminId = req.user!.id;
+      
+      const request = await storage.getDepositRequest(requestId);
+      if (!request) {
+        return res.status(404).json({ message: "Заявка не найдена" });
+      }
+      
+      if (request.status !== "pending") {
+        return res.status(400).json({ message: "Заявка уже обработана" });
+      }
+      
+      if (validatedData.action === "approve") {
+        // Approve deposit request
+        await storage.updateDepositRequestStatus(requestId, "approved", validatedData.comment, adminId);
+        
+        // Add funds to user balance
+        const amount = parseFloat(request.amount.toString());
+        await storage.updateUserBalance(request.userId, amount);
+        
+        // Create transaction
+        await storage.createTransaction({
+          userId: request.userId,
+          type: "deposit",
+          amount: amount.toString(),
+          status: "completed",
+          description: `Пополнение баланса через ${request.paymentMethod}`,
+        });
+        
+        res.json({ message: "Заявка на пополнение одобрена" });
+      } else {
+        // Reject deposit request
+        await storage.updateDepositRequestStatus(requestId, "rejected", validatedData.comment, adminId);
+        res.json({ message: "Заявка на пополнение отклонена" });
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      res.status(500).json({ message: "Ошибка при обработке заявки на пополнение" });
+    }
+  });
+
+  // Process withdraw request
+  app.post("/api/admin/withdraw-requests/:id/process", isAdmin, async (req, res) => {
+    try {
+      const requestId = parseInt(req.params.id);
+      const validatedData = adminActionSchema.parse(req.body);
+      const adminId = req.user!.id;
+      
+      const request = await storage.getWithdrawRequest(requestId);
+      if (!request) {
+        return res.status(404).json({ message: "Заявка не найдена" });
+      }
+      
+      if (request.status !== "pending") {
+        return res.status(400).json({ message: "Заявка уже обработана" });
+      }
+      
+      if (validatedData.action === "approve") {
+        // Approve withdraw request
+        await storage.updateWithdrawRequestStatus(requestId, "approved", validatedData.comment, adminId);
+        
+        // Deduct funds from user balance
+        const amount = parseFloat(request.amount.toString());
+        await storage.updateUserBalance(request.userId, -amount);
+        
+        // Create transaction
+        await storage.createTransaction({
+          userId: request.userId,
+          type: "withdraw",
+          amount: (-amount).toString(),
+          status: "completed",
+          description: `Вывод средств на ${request.walletAddress} через ${request.paymentMethod}`,
+        });
+        
+        res.json({ message: "Заявка на вывод одобрена" });
+      } else {
+        // Reject withdraw request
+        await storage.updateWithdrawRequestStatus(requestId, "rejected", validatedData.comment, adminId);
+        res.json({ message: "Заявка на вывод отклонена" });
+      }
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      res.status(500).json({ message: "Ошибка при обработке заявки на вывод" });
     }
   });
 

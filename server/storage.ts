@@ -1,4 +1,4 @@
-import { users, deposits, transactions, type User, type InsertUser, type Deposit, type InsertDeposit, type Transaction, type InsertTransaction } from "@shared/schema";
+import { users, deposits, transactions, depositRequests, withdrawRequests, type User, type InsertUser, type Deposit, type InsertDeposit, type Transaction, type InsertTransaction, type DepositRequest, type WithdrawRequest } from "@shared/schema";
 import createMemoryStore from "memorystore";
 import session from "express-session";
 import { nanoid } from "nanoid";
@@ -31,6 +31,20 @@ export interface IStorage {
   createReferralTransaction(referrerId: number, amount: number, description: string): Promise<Transaction>;
   getReferrals(userId: number): Promise<User[]>;
   
+  // Deposit Requests
+  createDepositRequest(request: any): Promise<DepositRequest>;
+  getDepositRequest(id: number): Promise<DepositRequest | undefined>;
+  getDepositRequestsByUserId(userId: number): Promise<DepositRequest[]>;
+  getAllDepositRequests(): Promise<DepositRequest[]>;
+  updateDepositRequestStatus(id: number, status: string, comment?: string, adminId?: number): Promise<void>;
+  
+  // Withdraw Requests
+  createWithdrawRequest(request: any): Promise<WithdrawRequest>;
+  getWithdrawRequest(id: number): Promise<WithdrawRequest | undefined>;
+  getWithdrawRequestsByUserId(userId: number): Promise<WithdrawRequest[]>;
+  getAllWithdrawRequests(): Promise<WithdrawRequest[]>;
+  updateWithdrawRequestStatus(id: number, status: string, comment?: string, adminId?: number): Promise<void>;
+  
   // Session Store
   sessionStore: session.SessionStore;
 }
@@ -39,18 +53,26 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private deposits: Map<number, Deposit>;
   private transactions: Map<number, Transaction>;
+  private depositRequests: Map<number, DepositRequest>;
+  private withdrawRequests: Map<number, WithdrawRequest>;
   private userIdCounter: number;
   private depositIdCounter: number;
   private transactionIdCounter: number;
-  sessionStore: session.SessionStore;
+  private depositRequestIdCounter: number;
+  private withdrawRequestIdCounter: number;
+  sessionStore: any;
   
   constructor() {
     this.users = new Map();
     this.deposits = new Map();
     this.transactions = new Map();
+    this.depositRequests = new Map();
+    this.withdrawRequests = new Map();
     this.userIdCounter = 1;
     this.depositIdCounter = 1;
     this.transactionIdCounter = 1;
+    this.depositRequestIdCounter = 1;
+    this.withdrawRequestIdCounter = 1;
     
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000, // prune expired entries every 24h
@@ -214,6 +236,105 @@ export class MemStorage implements IStorage {
     const updatedUser = { ...user, isActive };
     this.users.set(userId, updatedUser);
     return updatedUser;
+  }
+
+  // Deposit Requests methods
+  async createDepositRequest(request: any): Promise<DepositRequest> {
+    const id = this.depositRequestIdCounter++;
+    const depositRequest: DepositRequest = {
+      id,
+      userId: request.userId,
+      amount: request.amount,
+      paymentMethod: request.paymentMethod,
+      status: request.status || "pending",
+      adminComment: null,
+      approvedBy: null,
+      createdAt: new Date(),
+      processedAt: null,
+    };
+    
+    this.depositRequests.set(id, depositRequest);
+    return depositRequest;
+  }
+
+  async getDepositRequest(id: number): Promise<DepositRequest | undefined> {
+    return this.depositRequests.get(id);
+  }
+
+  async getDepositRequestsByUserId(userId: number): Promise<DepositRequest[]> {
+    return Array.from(this.depositRequests.values())
+      .filter(request => request.userId === userId)
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async getAllDepositRequests(): Promise<DepositRequest[]> {
+    return Array.from(this.depositRequests.values())
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async updateDepositRequestStatus(id: number, status: string, comment?: string, adminId?: number): Promise<void> {
+    const request = this.depositRequests.get(id);
+    if (!request) return;
+    
+    const updatedRequest = {
+      ...request,
+      status,
+      adminComment: comment || null,
+      approvedBy: adminId || null,
+      processedAt: new Date(),
+    };
+    
+    this.depositRequests.set(id, updatedRequest);
+  }
+
+  // Withdraw Requests methods
+  async createWithdrawRequest(request: any): Promise<WithdrawRequest> {
+    const id = this.withdrawRequestIdCounter++;
+    const withdrawRequest: WithdrawRequest = {
+      id,
+      userId: request.userId,
+      amount: request.amount,
+      walletAddress: request.walletAddress,
+      paymentMethod: request.paymentMethod,
+      status: request.status || "pending",
+      adminComment: null,
+      approvedBy: null,
+      createdAt: new Date(),
+      processedAt: null,
+    };
+    
+    this.withdrawRequests.set(id, withdrawRequest);
+    return withdrawRequest;
+  }
+
+  async getWithdrawRequest(id: number): Promise<WithdrawRequest | undefined> {
+    return this.withdrawRequests.get(id);
+  }
+
+  async getWithdrawRequestsByUserId(userId: number): Promise<WithdrawRequest[]> {
+    return Array.from(this.withdrawRequests.values())
+      .filter(request => request.userId === userId)
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async getAllWithdrawRequests(): Promise<WithdrawRequest[]> {
+    return Array.from(this.withdrawRequests.values())
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async updateWithdrawRequestStatus(id: number, status: string, comment?: string, adminId?: number): Promise<void> {
+    const request = this.withdrawRequests.get(id);
+    if (!request) return;
+    
+    const updatedRequest = {
+      ...request,
+      status,
+      adminComment: comment || null,
+      approvedBy: adminId || null,
+      processedAt: new Date(),
+    };
+    
+    this.withdrawRequests.set(id, updatedRequest);
   }
 }
 
