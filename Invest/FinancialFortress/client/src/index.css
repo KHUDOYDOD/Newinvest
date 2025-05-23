@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Обновленная цветовая палитра */
+  --background: 220 33% 98%;
+  --foreground: 224 71.4% 4.1%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 224 71.4% 4.1%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 71.4% 4.1%;
+  
+  --primary: 196 82% 47%;
+  --primary-foreground: 210 20% 98%;
+  
+  --secondary: 261 64% 58%;
+  --secondary-foreground: 210 20% 98%;
+  
+  --accent: 245 58% 52%;
+  --accent-foreground: 210 20% 98%;
+  
+  --muted: 220 14.3% 95.9%;
+  --muted-foreground: 220 8.9% 46.1%;
+  
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 20% 98%;
+
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 224 71.4% 4.1%;
+  
+  --radius: 0.75rem;
+  
+  --header-height: 4rem;
+  --sidebar-width: 18rem;
+  
+  /* Chart colors */
+  --chart-1: 196 82% 47%;
+  --chart-2: 261 64% 58%;
+  --chart-3: 340 82% 52%;
+  --chart-4: 53 100% 50%;
+  --chart-5: 155 72% 47%;
+  
+  /* Sidebar colors */
+  --sidebar-background: 224 44% 13%;
+  --sidebar-foreground: 210 20% 98%;
+  --sidebar-primary: 196 100% 45%;
+  --sidebar-primary-foreground: 240 5% 100%;
+  --sidebar-accent: 261 64% 58%;
+  --sidebar-accent-foreground: 240 5% 100%;
+  --sidebar-border: 240 20% 24%;
+  --sidebar-ring: 240 10% 30%;
+}
+
+.dark {
+  --background: 224 44% 8%;
+  --foreground: 224 100% 93%;
+  
+  --card: 224 44% 13%;
+  --card-foreground: 224 100% 93%;
+  
+  --popover: 224 44% 13%;
+  --popover-foreground: 224 100% 93%;
+  
+  --primary: 196 82% 52%;
+  --primary-foreground: 224 100% 98%;
+  
+  --secondary: 261 64% 63%;
+  --secondary-foreground: 224 100% 98%;
+  
+  --accent: 245 58% 60%;
+  --accent-foreground: 224 100% 98%;
+  
+  --muted: 224 44% 17%;
+  --muted-foreground: 224 30% 70%;
+  
+  --destructive: 0 75% 50%;
+  --destructive-foreground: 224 100% 98%;
+
+  --border: 240 20% 24%;
+  --input: 240 20% 24%;
+  --ring: 224 73% 75%;
+  
+  /* Chart colors */
+  --chart-1: 196 82% 60%;
+  --chart-2: 261 64% 70%;
+  --chart-3: 340 82% 65%;
+  --chart-4: 53 95% 65%;
+  --chart-5: 155 72% 55%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased touch-manipulation overflow-x-hidden scroll-smooth;
+    font-family: 'Montserrat', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+    scroll-padding-top: 60px;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-bold;
+  }
+
+  /* Mobile-first typography */
+  h1 { @apply text-2xl md:text-4xl leading-tight; }
+  h2 { @apply text-xl md:text-3xl leading-tight; }
+  h3 { @apply text-lg md:text-2xl leading-snug; }
+  
+  /* Improved touch targets */
+  button, a, input, select {
+    @apply min-h-[44px] md:min-h-[36px];
+  }
+}
+
+@layer components {
+  .gradient-bg {
+    @apply bg-gradient-to-r from-primary to-secondary;
+  }
+  
+  .hover-card {
+    @apply transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1;
+  }
+  
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: translateX(-100%);
+    animation: shimmer 2.5s infinite;
+  }
+  
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  /* Ticker style for crypto price tracker */
+  .ticker {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    height: 36px;
+    padding: 0 1rem;
+  }
+  
+  .ticker-wrapper {
+    display: inline-block;
+    white-space: nowrap;
+    animation: ticker 30s linear infinite;
+    padding-right: 100%;
+  }
+  
+  .ticker-item {
+    display: inline-block;
+    padding: 0 1.5rem;
+  }
+  
+  @keyframes ticker {
+    0% {
+      transform: translate3d(0, 0, 0);
+    }
+    
+    100% {
+      transform: translate3d(-100%, 0, 0);
+    }
+  }
+  
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer utilities {
+  /* Custom styled scrollbar */
+  .styled-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+  }
+  
+  .styled-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .styled-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .styled-scrollbar::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--primary) / 0.3);
+    border-radius: 20px;
+  }
+  
+  .styled-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--primary) / 0.5);
+  }
+}
