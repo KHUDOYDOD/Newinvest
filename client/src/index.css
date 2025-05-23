@@ -201,10 +201,60 @@
 }
 
 @layer utilities {
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .gradient-border {
+    border: double 1px transparent;
+    background-image: linear-gradient(white, white), 
+                     linear-gradient(to right, hsl(var(--primary)), hsl(var(--secondary)));
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+  }
+
   /* Custom styled scrollbar */
   .styled-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--primary) / 0.3) transparent;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+
+  @keyframes glow {
+    0%, 100% { filter: brightness(100%); }
+    50% { filter: brightness(120%); }
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
   
   .styled-scrollbar::-webkit-scrollbar {
