@@ -5,7 +5,7 @@ import TransactionHistory from "./TransactionHistory";
 import DepositForm from "./DepositForm";
 import WithdrawForm from "./WithdrawForm";
 
-const Dashboard: React.FC = () => {
+const Dashboard = () => {
   return (
     <div className="container mx-auto p-6">
       <div className="grid gap-6">
