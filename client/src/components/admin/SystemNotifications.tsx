@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Bell, Send, Trash } from "lucide-react";
 
-export function SystemNotifications() {
+export default function SystemNotifications() {
   const [notifications, setNotifications] = useState([
     { id: 1, title: "Системное обновление", priority: "high", sent: false },
     { id: 2, title: "Новые функции", priority: "medium", sent: true },

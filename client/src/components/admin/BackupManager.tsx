@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Database, Download, Trash } from "lucide-react";
 
-export function BackupManager() {
+export default function BackupManager() {
   const backups = [
     { id: 1, date: "2024-03-15 14:30", size: "256MB", type: "Полный" },
     { id: 2, date: "2024-03-14 14:30", size: "128MB", type: "Инкрементный" },
