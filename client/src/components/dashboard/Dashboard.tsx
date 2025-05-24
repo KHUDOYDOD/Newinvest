@@ -26,7 +26,7 @@ import ActiveDeposits from "./ActiveDeposits";
 import TransactionHistory from "./TransactionHistory";
 import RequestsManagement from "../admin/RequestsManagement";
 
-export function Dashboard() {
+export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -109,7 +109,7 @@ export function Dashboard() {
     0
   );
   
-  const userBalance = user ? parseFloat(user.balance.toString()) : 0;
+  const userBalance = user ? parseFloat(user.balance?.toString() || "0") : 0;
   const availableBalance = userBalance;
   
   // Calculate request statistics
