@@ -5,7 +5,7 @@ import TransactionHistory from "./TransactionHistory";
 import DepositForm from "./DepositForm";
 import WithdrawForm from "./WithdrawForm";
 
-export default function Dashboard() {
+export function Dashboard() {
   return (
     <div className="container mx-auto p-6">
       <div className="grid gap-6">
@@ -21,3 +21,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+export default Dashboard;
