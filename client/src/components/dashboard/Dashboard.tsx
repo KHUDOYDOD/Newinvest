@@ -30,7 +30,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  
+
   const { data: deposits = [] } = useQuery({
     queryKey: ["/api/deposits"],
     enabled: !!user,
@@ -67,7 +67,7 @@ export default function Dashboard() {
     queryKey: ["/api/admin/users"],
     enabled: !!user && user.role === 'admin',
   });
-  
+
   // Check for deposits that have completed their term
   const processProfitsMutation = useMutation({
     mutationFn: async () => {
@@ -80,7 +80,7 @@ export default function Dashboard() {
         description: data.message,
         variant: data.message.includes("успешно") ? "default" : "secondary",
       });
-      
+
       // Invalidate queries to refetch updated data
       queryClient.invalidateQueries({ queryKey: ["/api/deposits"] });
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -94,33 +94,33 @@ export default function Dashboard() {
       });
     }
   });
-  
+
   // Process profits on component mount
   useEffect(() => {
     if (user) {
       processProfitsMutation.mutate();
     }
   }, [user]);
-  
+
   // Calculate statistics
   const activeDeposits = deposits.filter((deposit: any) => deposit.status === "active");
   const totalActiveInvestments = activeDeposits.reduce(
     (sum: number, deposit: any) => sum + parseFloat(deposit.amount), 
     0
   );
-  
+
   const userBalance = user ? parseFloat(user.balance?.toString() || "0") : 0;
   const availableBalance = userBalance;
-  
+
   // Calculate request statistics
   const pendingDepositRequests = depositRequests.filter((req: any) => req.status === 'pending');
   const pendingWithdrawRequests = withdrawRequests.filter((req: any) => req.status === 'pending');
-  
+
   // Admin statistics
   const allPendingDeposits = adminDepositRequests.filter((req: any) => req.status === 'pending');
   const allPendingWithdraws = adminWithdrawRequests.filter((req: any) => req.status === 'pending');
   const totalPendingRequests = allPendingDeposits.length + allPendingWithdraws.length;
-  
+
   // Check if user is admin
   const isAdmin = user && (user as any).role === 'admin';
 
@@ -138,7 +138,7 @@ export default function Dashboard() {
             Вернуться к обзору
           </Button>
         </div>
-        
+
         {/* Admin Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/20 dark:to-blue-900/20 border-blue-200">
@@ -202,7 +202,7 @@ export default function Dashboard() {
       </div>
     );
   }
-  
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -222,7 +222,7 @@ export default function Dashboard() {
           </Button>
         )}
       </div>
-      
+
       {/* User Balance Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-0 shadow-lg">
@@ -244,7 +244,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-0 shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
@@ -264,7 +264,7 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border-0 shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
@@ -343,10 +343,10 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Active Deposits */}
       <ActiveDeposits deposits={deposits as any} />
-      
+
       {/* Transaction History */}
       <TransactionHistory transactions={transactions as any} />
     </div>
