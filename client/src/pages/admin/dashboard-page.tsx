@@ -1,34 +1,3 @@
-import { AdminLayout } from "@/components/admin/AdminLayout";
-import UserAnalytics from "@/components/admin/UserAnalytics";
-import RequestsManagement from "@/components/admin/RequestsManagement";
-import SystemHealth from "@/components/admin/SystemHealth";
-import BackupManager from "@/components/admin/BackupManager";
-import ReportGenerator from "@/components/admin/ReportGenerator";
-import SecurityMonitor from "@/components/admin/SecurityMonitor";
-import SystemNotifications from "@/components/admin/SystemNotifications";
-
-export default function AdminDashboardPage() {
-  return (
-    <AdminLayout>
-      <div className="container mx-auto p-4 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <UserAnalytics />
-          <RequestsManagement />
-          <SystemHealth />
-          <SecurityMonitor />
-          <BackupManager />
-          <ReportGenerator />
-          <SystemNotifications />
-        </div>
-      </div>
-    </AdminLayout>
-  );
-}
-```
-
-The edited snippet provides a simplified structure for the `AdminDashboardPage` component, focusing on integrating several new components. Since the original code contains a lot of dashboard logic and UI elements, I need to integrate those, while prioritizing the structure from the edited snippet, and including the original imports and functionalities which are missing from the edited code.
-
-```typescript
 import { useState } from "react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useMutation, useQuery } from "@tanstack/react-query";
