@@ -1,11 +1,11 @@
 
 import React from 'react';
 import { Card } from "@/components/ui/card";
+import TransactionHistory from "./TransactionHistory";
 import DepositForm from "./DepositForm";
 import WithdrawForm from "./WithdrawForm";
-import TransactionHistory from "./TransactionHistory";
 
-function Dashboard() {
+export default function Dashboard() {
   return (
     <div className="container mx-auto p-6">
       <div className="grid gap-6">
@@ -21,5 +21,3 @@ function Dashboard() {
     </div>
   );
 }
-
-export default Dashboard;
